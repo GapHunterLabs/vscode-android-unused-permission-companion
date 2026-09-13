@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { parseManifestPermissions, checkPermissionUsage } from './permissionCheck';
+import { recordHit } from './reviewPrompt';
 
 let diagnostics: vscode.DiagnosticCollection;
 
@@ -9,7 +10,7 @@ function lineOfPermission(manifestText: string, permission: string): number {
   return index === -1 ? 0 : index;
 }
 
-async function refreshWorkspace(): Promise<void> {
+async function refreshWorkspace(context: vscode.ExtensionContext): Promise<void> {
   const folders = vscode.workspace.workspaceFolders;
   if (!folders || folders.length === 0) return;
 
@@ -51,6 +52,7 @@ async function refreshWorkspace(): Promise<void> {
       vscode.DiagnosticSeverity.Information,
     );
     diagnostic.source = 'Android Unused Permission Companion';
+    recordHit(context, `${manifestUri.toString()}:${line}`);
     return diagnostic;
   });
   diagnostics.set(manifestUri, diags);
@@ -60,15 +62,15 @@ export function activate(context: vscode.ExtensionContext): void {
   diagnostics = vscode.languages.createDiagnosticCollection('androidUnusedPermissionCompanion');
   context.subscriptions.push(diagnostics);
 
-  void refreshWorkspace();
+  void refreshWorkspace(context);
 
   const watcher = vscode.workspace.createFileSystemWatcher('**/{AndroidManifest.xml,*.kt,*.java}');
   context.subscriptions.push(
     watcher,
-    watcher.onDidChange(() => void refreshWorkspace()),
-    watcher.onDidCreate(() => void refreshWorkspace()),
-    watcher.onDidDelete(() => void refreshWorkspace()),
-    vscode.commands.registerCommand('androidUnusedPermissionCompanion.rescan', () => void refreshWorkspace()),
+    watcher.onDidChange(() => void refreshWorkspace(context)),
+    watcher.onDidCreate(() => void refreshWorkspace(context)),
+    watcher.onDidDelete(() => void refreshWorkspace(context)),
+    vscode.commands.registerCommand('androidUnusedPermissionCompanion.rescan', () => void refreshWorkspace(context)),
   );
 }
 
