@@ -2,7 +2,7 @@
   "name": "android-unused-permission-companion",
   "displayName": "Android Unused Permission Companion",
   "description": "Flags a permission declared in AndroidManifest.xml that no Kotlin/Java source actually uses -- inverse of existing permission-adder extensions. No data leaves your editor.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "publisher": "GapHunterLabs",
   "icon": "images/icon.png",
   "license": "Apache-2.0",
